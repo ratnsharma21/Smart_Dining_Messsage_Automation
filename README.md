@@ -9,7 +9,7 @@ Welcome to the **Smart Dining CRM**, a state-of-the-art, high-performance Custom
 - **🏆 Dynamic Loyalty Tiering:** Automatically evaluates customer value (`New` ➡️ `Regular` ➡️ `VIP`) in real-time as restaurant visits and billing amounts are recorded.
 - **🌟 Top 10 Customers Leaderboard:** Displays a live ranking of the top 10 customers based on cumulative **Loyalty Points** (earned automatically at 1 point per ₹10 spent) complete with rank medals (🥇, 🥈, 🥉) and customer engagement statistics (detailed counts of SMS, WhatsApp, and Email messages sent to each customer).
 - **📅 Occasion Calendar & Automation:** Displays birthdays, anniversaries, and milestones for any chosen date. Allows managers to select recipients and dispatch greetings.
-- **🔍 Advanced Customer Directory Filtering:** Dynamic client-side filters in the Customer Directory table allow managers to filter customers by category (VIP, Regular, New), total spending range (₹1,000 - ₹2,000, ₹2,000 - ₹4,000, and ₹4,000 - ₹10,000), and their `Last Visited` date.
+- **🔍 Advanced Customer Directory Filtering:** Dynamic client-side filters in the Customer Directory table allow managers to filter customers by category (VIP, Regular, New) and their `Last Visited` date.
 - **🔍 Outbound Message Logs & Filtering:** A central messaging log where managers can view dispatch statuses and apply filters dynamically to isolate messages sent via **SMS**, **WhatsApp**, or **Email**, campaigns matching **Birthday Occasions** or **Anniversary Occasions**, or messages sent on a specific **Date**.
 - **📨 Multi-Channel Communication:**
   - **SMTP Mail Client:** Built-in SMTP client with TLS/SSL encryption support to authenticate and send greetings.
