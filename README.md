@@ -201,4 +201,4 @@ Manage default messages in settings:
 ## 📜 License & Acknowledgments
 
 - **UI Toolkit:** Designed using custom modern CSS, including custom glassmorphic panels and responsive grids.
-- Built for seamless performance and responsive interaction.
+- Built for seamless performance, modern responsive aesthetics, and comprehensive customer lifecycle management.
