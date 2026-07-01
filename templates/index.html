@@ -1,0 +1,1082 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Dining Restaurant CRM</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- External CSS Styling Sheet served from static folder -->
+    <link rel="stylesheet" href="/static/style.css?v=1.2">
+</head>
+<body>
+
+<div class="app-container">
+    
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <div class="brand">
+            <div class="brand-logo">S</div>
+            <div class="brand-name">Smart Dining</div>
+        </div>
+        
+        <ul class="nav-list">
+            <li class="nav-item active" onclick="switchTab('customers')">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle></svg>
+                <span>Customers</span>
+            </li>
+            <li class="nav-item" onclick="switchTab('leaderboard')">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+                <span>Top 10 Customers</span>
+            </li>
+            <li class="nav-item" onclick="switchTab('logs')">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+                <span>Message History</span>
+            </li>
+            <li class="nav-item" onclick="switchTab('automation')">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                <span>Occasion Calendar</span>
+            </li>
+            <li class="nav-item" onclick="switchTab('offline_messaging')">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+                <span>Occasion Calendar Offline</span>
+            </li>
+        </ul>
+        
+        <div class="sidebar-footer">
+            <div class="db-status-widget">
+                <div class="status-header">
+                    <span>DATABASE</span>
+                    {% if db_error %}
+                        <div class="status-pill danger">
+                            <span class="status-indicator"></span>DISCONNECTED
+                        </div>
+                    {% elif not db_initialized %}
+                        <div class="status-pill danger">
+                            <span class="status-indicator"></span>UNINITIALIZED
+                        </div>
+                    {% else %}
+                        <div class="status-pill success">
+                            <span class="status-indicator"></span>ACTIVE
+                        </div>
+                    {% endif %}
+                </div>
+                <div class="db-meta">
+                    <strong>Host:</strong> {{ host }}:{{ port }}<br>
+                    <strong>DB:</strong> {{ dbname }}<br>
+                    <strong>User:</strong> {{ user }}
+                </div>
+                {% if not db_initialized and not db_error %}
+                    <form method="POST">
+                        <button type="submit" name="initialize_db" class="btn btn-primary" style="width: 100%; justify-content: center; padding: 8px 12px; font-size: 11px; margin-top: 6px;">
+                            Install Schema
+                        </button>
+                    </form>
+                {% endif %}
+            </div>
+        </div>
+    </aside>
+
+    <!-- Main Panel -->
+    <main class="main-content">
+        
+        <!-- Top bar with indicators/action -->
+        <div class="top-bar">
+            <div>
+                <h1 class="page-title" id="page-display-title">Customers Directory</h1>
+            </div>
+            <div class="action-group">
+                {% if db_initialized %}
+                    <button class="btn btn-secondary" onclick="openModal('customer-modal')">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><line x1="19" y1="8" x2="19" y2="14"></line><line x1="16" y1="11" x2="22" y2="11"></line></svg>
+                        Add Customer
+                    </button>
+                    <button class="btn btn-primary" onclick="openModal('visit-modal')">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                        Record Visit
+                    </button>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- System Alerts -->
+        {% if db_error %}
+            <div class="alert alert-danger">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+                <div><strong>Connection Issue:</strong> {{ db_error }}. Please check if your MySQL server is running and credentials match.</div>
+            </div>
+        {% endif %}
+        
+        {% if success_message %}
+            <div class="alert alert-success">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+                <div>{{ success_message }}</div>
+            </div>
+        {% endif %}
+
+        {% if error_message %}
+            <div class="alert alert-danger">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+                <div>{{ error_message }}</div>
+            </div>
+        {% endif %}
+
+        <!-- Database Setup Splash Page if Uninitialized -->
+        {% if not db_initialized and not db_error %}
+            <div class="glass-panel empty-state" style="padding: 40px; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 16px; color: var(--text-secondary);">
+                <svg class="empty-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" style="width: 50px; height: 50px; stroke: var(--text-muted); stroke-width: 1.5; fill: none;"><ellipse cx="12" cy="5" rx="9" ry="3"></ellipse><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"></path><path d="M3 12c0 1.66 4 3 9 3s9-1.34 9-3"></path></svg>
+                <div class="empty-title" style="font-family: var(--font-display); font-size: 18px; font-weight: 600; color: var(--text-primary);">Set Up Your CRM Database</div>
+                <div class="empty-text" style="font-size: 13px; max-width: 420px; line-height: 1.5;">We connected to MySQL, but the tables haven't been built yet. Click below to execute the complete schema definitions and insert default system values.</div>
+                <form method="POST">
+                    <button type="submit" name="initialize_db" class="btn btn-primary" style="margin-top: 10px;">
+                        Initialize Database & Populate Logs
+                    </button>
+                </form>
+            </div>
+        {% endif %}
+
+        <!-- Dashboard Stats Row -->
+        {% if db_initialized %}
+            <div class="stats-grid">
+                <div class="stats-card">
+                    <div class="stats-card-header">
+                        <span>Total Customers</span>
+                        <div class="stats-icon-wrapper">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle></svg>
+                        </div>
+                    </div>
+                    <div class="stats-value">{{ stats.customers }}</div>
+                </div>
+                <div class="stats-card">
+                    <div class="stats-card-header">
+                        <span>Total Revenue Generated</span>
+                        <div class="stats-icon-wrapper">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+                        </div>
+                    </div>
+                    <div class="stats-value">₹{{ "{:,.2f}".format(stats.spent) }}</div>
+                </div>
+                <div class="stats-card">
+                    <div class="stats-card-header">
+                        <span>Total Dining Visits</span>
+                        <div class="stats-icon-wrapper">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20z"></path><path d="M12 6v6l4 2"></path></svg>
+                        </div>
+                    </div>
+                    <div class="stats-value">{{ stats.visits }}</div>
+                </div>
+            </div>
+
+            <!-- TAB: CUSTOMERS -->
+            <div class="tab-pane active" id="tab-customers">
+                <div class="glass-panel">
+                    <div class="controls-row">
+                        <div class="search-wrapper">
+                            <svg class="search-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                            <input type="text" class="search-input" id="customerSearch" placeholder="Search by name, phone number, email, address..." onkeyup="filterCustomers()">
+                        </div>
+                        <select class="filter-select" id="categoryFilter" onchange="filterCustomers()">
+                            <option value="All">All Categories</option>
+                            <option value="VIP">VIP</option>
+                            <option value="Regular">Regular</option>
+                            <option value="New">New</option>
+                        </select>
+                        <select class="filter-select" id="moneyFilter" onchange="filterCustomers()">
+                            <option value="All">All Spending</option>
+                            <option value="1000-2000">₹1,000 - ₹2,000</option>
+                            <option value="2000-4000">₹2,000 - ₹4,000</option>
+                            <option value="4000-10000">₹4,000 - ₹10,000</option>
+                        </select>
+                        <div style="display: flex; gap: 6px; align-items: center;">
+                            <input type="date" class="filter-select" id="dateFilter" onchange="filterCustomers()" style="height: 38px; padding: 8px 12px;" placeholder="Filter by date">
+                            <button type="button" class="btn btn-secondary" onclick="clearDateFilter()" style="padding: 10px 12px; height: 38px; display: flex; align-items: center; justify-content: center; min-width: auto;" title="Clear Date Filter">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="table-wrapper">
+                        <table id="customersTable">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Full Name</th>
+                                    <th>Phone Number</th>
+                                    <th>Email</th>
+                                    <th>Category</th>
+                                    <th>Total Visits</th>
+                                    <th>Total Spent</th>
+                                    <th>Loyalty Points</th>
+                                    <th>Last Visited</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% if not customers %}
+                                    <tr>
+                                        <td colspan="9" style="text-align: center; color: var(--text-secondary);">No customers registered.</td>
+                                    </tr>
+                                {% else %}
+                                    {% for c in customers %}
+                                        <tr onclick="fetchCustomerDetails(this.getAttribute('data-id'))" data-id="{{ c.customer_id }}">
+                                            <td>#{{ c.customer_id }}</td>
+                                            <td style="font-weight: 600;">{{ c.full_name }}</td>
+                                            <td>{{ c.phone_number }}</td>
+                                            <td>{{ c.email_address or '-' }}</td>
+                                            <td>
+                                                <span class="badge {{ c.customer_category | lower }}">{{ c.customer_category }}</span>
+                                            </td>
+                                            <td>{{ c.total_visits }}</td>
+                                            <td style="font-weight: 600;">₹{{ "{:,.2f}".format(c.total_amount_spent) }}</td>
+                                            <td style="font-weight: 600; color: var(--accent-primary);">{{ c.loyalty_points or 0 }} pts</td>
+                                            <td>{{ c.last_visit_date or 'Never' }}</td>
+                                        </tr>
+                                    {% endfor %}
+                                {% endif %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB: LEADERBOARD -->
+            <div class="tab-pane" id="tab-leaderboard">
+                <div class="glass-panel">
+                    <div class="panel-header" style="flex-direction: column; align-items: flex-start; gap: 4px; margin-bottom: 20px;">
+                        <h2 class="panel-title">🏆 Top 10 Customers Leaderboard</h2>
+                        <span style="font-size: 12px; color: var(--text-secondary);">Ranked by Loyalty Points earned (1 Point per ₹10 Spent). Includes SMS, WhatsApp, and Email dispatch stats.</span>
+                    </div>
+                    
+                    <div class="table-wrapper">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th style="width: 80px; text-align: center;">Rank</th>
+                                    <th>ID</th>
+                                    <th>Full Name</th>
+                                    <th>Phone Number</th>
+                                    <th>Total Visits</th>
+                                    <th>Total Spent</th>
+                                    <th style="color: var(--accent-primary);">Loyalty Points</th>
+                                    <th>Category</th>
+                                    <th style="text-align: center;">💬 SMS Sent</th>
+                                    <th style="text-align: center;">💬 WhatsApp Sent</th>
+                                    <th style="text-align: center;">✉️ Email Sent</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% if not top_customers %}
+                                    <tr>
+                                        <td colspan="11" style="text-align: center; color: var(--text-secondary);">No leaderboard rankings calculated yet.</td>
+                                    </tr>
+                                {% else %}
+                                    {% for c in top_customers %}
+                                        <tr onclick="fetchCustomerDetails(this.getAttribute('data-id'))" data-id="{{ c.customer_id }}">
+                                            <td style="font-weight: 700; text-align: center; font-size: 14px;">
+                                                {% if loop.index == 1 %}
+                                                    🥇 1
+                                                <!-- slide -->
+                                                {% elif loop.index == 2 %}
+                                                    🥈 2
+                                                {% elif loop.index == 3 %}
+                                                    🥉 3
+                                                {% else %}
+                                                    {{ loop.index }}
+                                                {% endif %}
+                                            </td>
+                                            <td>#{{ c.customer_id }}</td>
+                                            <td style="font-weight: 600;">{{ c.full_name }}</td>
+                                            <td>{{ c.phone_number }}</td>
+                                            <td>{{ c.total_visits }}</td>
+                                            <td style="font-weight: 600;">₹{{ "{:,.2f}".format(c.total_amount_spent) }}</td>
+                                            <td style="font-weight: 700; color: var(--accent-primary); font-size: 14px;">{{ c.loyalty_points or 0 }} pts</td>
+                                            <td>
+                                                <span class="badge {{ c.customer_category | lower }}">{{ c.customer_category }}</span>
+                                            </td>
+                                            <td style="text-align: center; font-weight: 600;">{{ c.sms_count or 0 }}</td>
+                                            <td style="text-align: center; font-weight: 600;">{{ c.whatsapp_count or 0 }}</td>
+                                            <td style="text-align: center; font-weight: 600;">{{ c.email_count or 0 }}</td>
+                                        </tr>
+                                    {% endfor %}
+                                {% endif %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB: LOGS -->
+            <div class="tab-pane" id="tab-logs">
+                <div class="glass-panel">
+                    <div class="panel-header" style="flex-direction: row; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 20px; flex-wrap: wrap; width: 100%;">
+                        <div style="display: flex; flex-direction: column; gap: 4px;">
+                            <h2 class="panel-title">Outbound Message Logs</h2>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+                            <div class="sub-nav-group">
+                                <button type="button" class="sub-nav-btn active" onclick="switchHistoryTab('automated')">Automated</button>
+                                <button type="button" class="sub-nav-btn" onclick="switchHistoryTab('manual')">Manual</button>
+                            </div>
+                            <select id="history-filter-select" onchange="applyHistoryFilter()" style="background: var(--bg-tertiary); color: var(--text-primary); border: 1px solid var(--glass-border); padding: 6px 12px; border-radius: var(--radius-sm); font-size: 12px; font-weight: 600; outline: none; cursor: pointer; height: 32px; transition: var(--transition);">
+                                <option value="all">All Filters</option>
+                                <option value="sms">💬 SMS Messages</option>
+                                <option value="whatsapp">💬 WhatsApp Messages</option>
+                                <option value="email">✉️ Email Messages</option>
+                                <option value="birthday">🎂 Birthday Occasions</option>
+                                <option value="anniversary">🥂 Anniversary Occasions</option>
+                            </select>
+                            <div style="display: flex; gap: 6px; align-items: center;">
+                                <input type="date" class="filter-select" id="historyDateFilter" onchange="applyHistoryFilter()" style="background: var(--bg-tertiary); color: var(--text-primary); border: 1px solid var(--glass-border); padding: 4px 10px; border-radius: var(--radius-sm); font-size: 12px; font-weight: 600; outline: none; cursor: pointer; height: 32px; transition: var(--transition);">
+                                <button type="button" class="btn btn-secondary" onclick="clearHistoryDateFilter()" style="padding: 0 10px; height: 32px; display: flex; align-items: center; justify-content: center; min-width: auto;" title="Clear Date Filter">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="table-wrapper">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Message ID</th>
+                                    <th>Recipient</th>
+                                    <th>Channel</th>
+                                    <th>Rendered Content</th>
+                                    <th>Sent Timestamp</th>
+                                    <th>Delivery Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% if not recent_messages %}
+                                    <tr>
+                                        <td colspan="6" style="text-align: center; color: var(--text-secondary);">No messages sent yet.</td>
+                                    </tr>
+                                {% else %}
+                                    {% for msg in recent_messages %}
+                                        <tr class="history-row" 
+                                            data-delivery-type="{{ (msg.delivery_type or 'automated') | lower }}"
+                                            data-channel="{{ msg.message_channel | lower }}"
+                                            data-occasion="{{ (msg.occasion or '') | lower }}">
+                                            <td>#{{ msg.message_id }}</td>
+                                            <td style="font-weight: 600;">{{ msg.full_name }}</td>
+                                            <td>
+                                                <span class="badge {{ msg.message_channel | lower }}">{{ msg.message_channel }}</span>
+                                            </td>
+                                            <td style="max-width: 400px; font-size: 12px; line-height: 1.4; color: var(--text-secondary); white-space: pre-line;">{{ msg.message_content }}</td>
+                                            <td>{{ msg.sent_datetime }}</td>
+                                            <td>
+                                                <span class="badge {{ msg.delivery_status | lower }}">{{ msg.delivery_status }}</span>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                {% endif %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB: AUTOMATION -->
+            <div class="tab-pane" id="tab-automation">
+                <div class="glass-panel">
+                    <div class="panel-header">
+                        <h2 class="panel-title">Occasion Calendar & Outreach</h2>
+                    </div>
+                    
+                    <p style="color: var(--text-secondary); margin-bottom: 20px; font-size: 13px; line-height: 1.4;">
+                        Select a date to check for customers celebrating a birthday or anniversary, and send custom greetings.
+                    </p>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1.5fr; gap: 20px; align-items: start;">
+                        
+                        <!-- Control Box -->
+                        <div style="display: flex; flex-direction: column; gap: 16px; background: var(--bg-secondary); border: 1px solid var(--glass-border); padding: 18px; border-radius: var(--radius-md);">
+                            <div class="form-group">
+                                <label for="calendar_check_date">Select Calendar Date</label>
+                                <input type="date" id="calendar_check_date" class="form-control" value="{{ current_date }}" onchange="runCalendarOccasionCheck()">
+                            </div>
+
+                            <div class="form-group">
+                                <label for="override_test_email">Test Redirect Email</label>
+                                <input type="email" id="override_test_email" class="form-control" placeholder="e.g. test@example.com">
+                            </div>
+
+                            <div class="form-group">
+                                <label for="override_test_phone">Test Redirect Phone</label>
+                                <input type="text" id="override_test_phone" class="form-control" placeholder="e.g. +919876543210">
+                            </div>
+
+                            <!-- Channel choices (Required by User: two options to send by email or SMS contact) -->
+                            <div style="border-top: 1px solid var(--glass-border); padding-top: 12px; display: flex; flex-direction: column; gap: 8px;">
+                                <label style="font-size: 10px;">Select Active Channels</label>
+                                <div class="form-group" style="flex-direction: row; align-items: center; gap: 8px; margin-bottom: 0;">
+                                    <input type="checkbox" id="send_channel_email" class="occasion-checkbox" checked>
+                                    <label for="send_channel_email" style="cursor: pointer; font-size: 11px; text-transform: none; font-weight: 500;">📧 Send via Email (to customer email)</label>
+                                </div>
+                                <div class="form-group" style="flex-direction: row; align-items: center; gap: 8px; margin-bottom: 0;">
+                                    <input type="checkbox" id="send_channel_sms" class="occasion-checkbox" checked>
+                                    <label for="send_channel_sms" style="cursor: pointer; font-size: 11px; text-transform: none; font-weight: 500;">📱 Send via SMS (to customer contact)</label>
+                                </div>
+                                <div class="form-group" style="flex-direction: row; align-items: center; gap: 8px; margin-bottom: 0;">
+                                    <input type="checkbox" id="send_channel_whatsapp" class="occasion-checkbox" checked>
+                                    <label for="send_channel_whatsapp" style="cursor: pointer; font-size: 11px; text-transform: none; font-weight: 500;">💬 Send via WhatsApp (to customer phone)</label>
+                                </div>
+                            </div>
+
+                            <!-- Custom messages collapse -->
+                            <div style="border-top: 1px solid var(--glass-border); padding-top: 12px;">
+                                <details style="cursor: pointer;">
+                                    <summary style="font-size: 11px; font-weight: 700; color: var(--text-secondary); display: flex; align-items: center; gap: 4px;">
+                                        Configure Greeting Templates
+                                    </summary>
+                                    <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 10px;">
+                                        <div class="form-group">
+                                            <label style="font-size: 9px;">Birthday Greeting Message</label>
+                                            <textarea id="custom_bday_msg" class="form-control" style="font-size: 12px;">{{ settings.custom_bday_msg }}</textarea>
+                                        </div>
+                                        <div class="form-group">
+                                            <label style="font-size: 9px;">Anniversary Greeting Message</label>
+                                            <textarea id="custom_anniv_msg" class="form-control" style="font-size: 12px;">{{ settings.custom_anniv_msg }}</textarea>
+                                        </div>
+                                        <button type="button" class="btn btn-secondary" onclick="saveSettingsToDatabase()" style="font-size: 11px; padding: 6px 12px;">Save Templates</button>
+                                    </div>
+                                </details>
+                            </div>
+
+                            <!-- SMTP Settings -->
+                            <div style="border-top: 1px solid var(--glass-border); padding-top: 12px;">
+                                <details style="cursor: pointer;">
+                                    <summary style="font-size: 11px; font-weight: 700; color: var(--text-secondary); display: flex; align-items: center; gap: 4px;">
+                                        SMTP Email Server Settings
+                                    </summary>
+                                    <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 10px;">
+                                        <div class="form-group">
+                                            <label style="font-size: 9px;">SMTP Host</label>
+                                            <input type="text" id="smtp_host" class="form-control" value="{{ settings.smtp_host }}">
+                                        </div>
+                                        <div class="form-row">
+                                            <div class="form-group">
+                                                <label style="font-size: 9px;">Port</label>
+                                                <input type="number" id="smtp_port" class="form-control" value="{{ settings.smtp_port }}">
+                                            </div>
+                                            <div class="form-group">
+                                                <label style="font-size: 9px;">Secure</label>
+                                                <select id="smtp_secure" class="form-control" style="padding: 8px;">
+                                                    <option value="tls" {% if settings.smtp_secure == 'tls' %}selected{% endif %}>TLS</option>
+                                                    <option value="ssl" {% if settings.smtp_secure == 'ssl' %}selected{% endif %}>SSL</option>
+                                                    <option value="none" {% if settings.smtp_secure == 'none' %}selected{% endif %}>None</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div class="form-group">
+                                            <label style="font-size: 9px;">SMTP Username</label>
+                                            <input type="email" id="smtp_user" class="form-control" value="{{ settings.smtp_user }}">
+                                        </div>
+                                        <div class="form-group">
+                                             <label style="font-size: 9px;">SMTP Password</label>
+                                             <input type="password" id="smtp_pass" class="form-control" value="{{ settings.smtp_pass }}">
+                                        </div>
+                                        <button type="button" class="btn btn-secondary" onclick="saveSettingsToDatabase()" style="font-size: 11px; padding: 6px 12px;">Save SMTP Configuration</button>
+                                    </div>
+                                </details>
+                            </div>
+
+                            <!-- SMS Settings -->
+                            <div style="border-top: 1px solid var(--glass-border); padding-top: 12px;">
+                                <details style="cursor: pointer;" open>
+                                    <summary style="font-size: 11px; font-weight: 700; color: var(--text-secondary); display: flex; align-items: center; gap: 4px;">
+                                        📱 SMS Gateway Settings
+                                    </summary>
+                                    <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 10px;">
+
+                                        <!-- Provider badge -->
+                                        <div id="sms_provider_badge" style="background: linear-gradient(135deg, #1a2a1a, #0f3a0f); border: 1px solid #2ecc40; border-radius: 6px; padding: 10px 12px; display: flex; align-items: center; gap: 8px;">
+                                            <span id="sms_provider_badge_dot" style="width: 8px; height: 8px; border-radius: 50%; background: #2ecc40; display: inline-block; flex-shrink:0;"></span>
+                                            <span id="sms_provider_badge_text" style="font-size: 11px; color: #7dff8a; font-weight: 600; letter-spacing: 0.3px;">Cloud Functions SMS Gateway — Active</span>
+                                        </div>
+
+                                        <div class="form-group">
+                                            <label style="font-size: 9px;">SMS Provider</label>
+                                            <select id="sms_provider" class="form-control" style="padding: 8px;">
+                                                <option value="fast2sms" {% if settings.sms_provider == 'fast2sms' %}selected{% endif %}>⚡ Fast2SMS Service</option>
+                                                <option value="simulated" {% if settings.sms_provider == 'simulated' %}selected{% endif %}>🧪 Simulated (Logs Only)</option>
+                                            </select>
+                                        </div>
+
+                                        <div class="form-group" id="sms_host_group">
+                                            <label id="sms_host_label" style="font-size: 9px;">API Endpoint</label>
+                                            <input type="text" id="sms_host" class="form-control" value="{{ settings.sms_host }}" style="font-size: 10px;">
+                                        </div>
+
+                                        <div class="form-group">
+                                            <label id="sms_token_label" style="font-size: 9px;">API Key (X-API-Key)</label>
+                                            <input type="password" id="sms_token" class="form-control" value="{{ settings.sms_token }}">
+                                        </div>
+
+                                        <!-- SMS Direction Diagram -->
+                                        <div id="sms_direction_diagram" style="background: var(--bg-primary); border: 1px solid var(--glass-border); border-radius: 6px; padding: 10px 14px; font-size: 11px; line-height: 1.8;">
+                                            <div style="font-weight: 700; color: var(--text-secondary); margin-bottom: 6px; letter-spacing: 0.3px;">📤 MESSAGE FLOW</div>
+                                            <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                                                <div id="sms_from_badge" style="background: var(--accent-primary); color: #fff; padding: 4px 10px; border-radius: 20px; font-weight: 600; font-size: 11px;">
+                                                    FROM: <span id="sms_sender_badge_val">{{ settings.sms_sender }}</span>
+                                                </div>
+                                                <span style="color: var(--text-muted); font-size: 18px;">→</span>
+                                                <div style="background: var(--success, #2ecc71); color: #fff; padding: 4px 10px; border-radius: 20px; font-weight: 600; font-size: 11px;">
+                                                    TO: Customer's Registered Phone
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="form-group">
+                                            <label id="sms_sender_label" style="font-size: 9px;">YOUR NUMBER (Sender — registered with API key)</label>
+                                            <input type="text" id="sms_sender" class="form-control" value="{{ settings.sms_sender }}"
+                                                style="font-weight: 600; color: var(--accent-primary);" placeholder="9026678700">
+                                            <div id="sms_sender_desc" style="font-size: 9px; color: var(--text-muted); margin-top: 4px;">This is the number SMS will appear to come FROM on each customer's phone.</div>
+                                        </div>
+
+                                        <button type="button" class="btn btn-secondary" onclick="saveSettingsToDatabase()" style="font-size: 11px; padding: 6px 12px;">💾 Save SMS Configuration</button>
+                                    </div>
+                                </details>
+                            </div>
+                            
+                            <!-- WhatsApp Settings -->
+                            <div style="border-top: 1px solid var(--glass-border); padding-top: 12px;">
+                                <details style="cursor: pointer;" open>
+                                    <summary style="font-size: 11px; font-weight: 700; color: var(--text-secondary); display: flex; align-items: center; gap: 4px;">
+                                        💬 WhatsApp Gateway Settings
+                                    </summary>
+                                    <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 10px;">
+
+                                        <!-- Provider badge -->
+                                        <div id="wa_provider_badge" style="background: linear-gradient(135deg, #1a2a1a, #0f3a0f); border: 1px solid #2ecc40; border-radius: 6px; padding: 10px 12px; display: flex; align-items: center; gap: 8px;">
+                                            <span id="wa_provider_badge_dot" style="width: 8px; height: 8px; border-radius: 50%; background: #2ecc40; display: inline-block; flex-shrink:0;"></span>
+                                            <span id="wa_provider_badge_text" style="font-size: 11px; color: #7dff8a; font-weight: 600; letter-spacing: 0.3px;">WhatsApp Service — Active</span>
+                                        </div>
+
+                                        <div class="form-group">
+                                            <label style="font-size: 9px;">WhatsApp Provider</label>
+                                            <select id="whatsapp_provider" class="form-control" style="padding: 8px;">
+                                                <option value="simulated" {% if settings.whatsapp_provider == 'simulated' %}selected{% endif %}>🧪 Simulated (Logs Only)</option>
+                                                <option value="twilio" {% if settings.whatsapp_provider == 'twilio' %}selected{% endif %}>📞 Twilio WhatsApp API</option>
+                                            </select>
+                                        </div>
+
+                                        <div class="form-group" id="whatsapp_host_group">
+                                            <label id="whatsapp_host_label" style="font-size: 9px;">Account SID (Host)</label>
+                                            <input type="text" id="whatsapp_host" class="form-control" value="{{ settings.whatsapp_host }}" style="font-size: 10px;">
+                                        </div>
+
+                                        <div class="form-group">
+                                            <label id="whatsapp_token_label" style="font-size: 9px;">API Token / Auth Token</label>
+                                            <input type="password" id="whatsapp_token" class="form-control" value="{{ settings.whatsapp_token }}">
+                                        </div>
+
+                                        <div class="form-group">
+                                            <label id="whatsapp_sender_label" style="font-size: 9px;">Sender Number / WhatsApp ID</label>
+                                            <input type="text" id="whatsapp_sender" class="form-control" value="{{ settings.whatsapp_sender }}"
+                                                style="font-weight: 600; color: var(--accent-primary);" placeholder="e.g. +14155238886">
+                                        </div>
+
+                                        <button type="button" class="btn btn-secondary" onclick="saveSettingsToDatabase()" style="font-size: 11px; padding: 6px 12px;">💾 Save WhatsApp Configuration</button>
+                                    </div>
+                                </details>
+                            </div>
+                            
+                            <!-- Test channels section (Required: single Send button at bottom of sidebar config) -->
+                            <div style="border-top: 1px solid var(--glass-border); padding-top: 12px; display: flex; flex-direction: column; gap: 8px;">
+                                <label style="font-size: 10px;">Test Selected Channels</label>
+                                <div style="font-size: 10px; color: var(--text-muted); line-height: 1.4; margin-bottom: 4px;">
+                                    Dispatches a test message using the active channels selected above to your Test Redirect Email and/or Test Redirect Phone.
+                                </div>
+                                <button type="button" class="btn btn-primary" onclick="sendTestChannel()" style="font-size: 11px; padding: 10px 12px; justify-content: center; width: 100%;">
+                                    Send for trial
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Right Column (Greetings Send & Match Results) -->
+                        <div style="display: flex; flex-direction: column; gap: 16px;">
+                            <!-- Send Greetings action row -->
+                            <div style="display: flex; justify-content: flex-start;">
+                                <button type="button" class="btn btn-primary" onclick="triggerAutomationEmails()" style="padding: 10px 24px; font-size: 13px; width: auto;">
+                                    Send
+                                </button>
+                            </div>
+
+                            <!-- Results Box -->
+                            <div class="glass-panel" style="background: var(--bg-secondary); padding: 18px;">
+                                <h3 style="font-size: 14px; margin-bottom: 14px; font-family: var(--font-display); font-weight: 600;">Occasions Matching Selected Date</h3>
+                                
+                                <div id="calendar-results-container" style="display: flex; flex-direction: column; gap: 10px;">
+                                    <div style="text-align: center; color: var(--text-muted); padding: 40px 0;">
+                                        Select a date to view matching occasions.
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB: OCCASION CALENDAR OFFLINE -->
+            <div class="tab-pane" id="tab-offline_messaging">
+                <div class="glass-panel">
+                    <div class="panel-header">
+                        <h2 class="panel-title">Occasion Calendar Offline</h2>
+                    </div>
+                    
+                    <p style="color: var(--text-secondary); margin-bottom: 20px; font-size: 13px; line-height: 1.4;">
+                        Select a customer manually from the database, select the milestone occasion, customize the message, and send manually via offline schemes (WhatsApp Web/app link, client email, or copy text) without using any automated API.
+                    </p>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1.5fr; gap: 20px; align-items: start;">
+                        <!-- Left Control Column -->
+                        <div style="display: flex; flex-direction: column; gap: 16px; background: var(--bg-secondary); border: 1px solid var(--glass-border); padding: 18px; border-radius: var(--radius-md);">
+                            
+                            <!-- Select Customer Dropdown -->
+                            <div class="form-group">
+                                <label for="offline_customer_select">Select Customer *</label>
+                                <select id="offline_customer_select" class="form-control" onchange="onOfflineCustomerChange()" style="padding: 8px;">
+                                    <option value="">-- Choose Customer --</option>
+                                    {% for c in customers %}
+                                        <option value="{{ c.customer_id }}" data-phone="{{ c.phone_number }}" data-email="{{ c.email_address or '' }}" data-name="{{ c.full_name }}">{{ c.full_name }} ({{ c.phone_number }})</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            
+                            <!-- Select Occasion Type -->
+                            <div class="form-group">
+                                <label for="offline_occasion_select">Occasion Type *</label>
+                                <select id="offline_occasion_select" class="form-control" onchange="onOfflineOccasionChange()" style="padding: 8px;">
+                                    <option value="Birthday">🎂 Birthday</option>
+                                    <option value="Anniversary">🥂 Anniversary</option>
+                                    <option value="Custom">✨ Custom Milestone</option>
+                                </select>
+                            </div>
+
+                            <!-- Channel Option (SMS, WhatsApp, Email) -->
+                            <div class="form-group">
+                                <label for="offline_channel_select">Message Channel *</label>
+                                <select id="offline_channel_select" class="form-control" onchange="onOfflineChannelChange()" style="padding: 8px;">
+                                    <option value="WhatsApp">💬 WhatsApp (Manual Link)</option>
+                                    <option value="SMS">📱 SMS (Text/Copy)</option>
+                                    <option value="Email">📧 Email (Mail Client Link)</option>
+                                </select>
+                            </div>
+
+                            <!-- Subject line for Email -->
+                            <div class="form-group" id="offline_subject_group" style="display: none;">
+                                <label for="offline_subject">Email Subject</label>
+                                <input type="text" id="offline_subject" class="form-control" placeholder="Enter subject line" value="Smart Dining Special Greetings ✉️">
+                            </div>
+                        </div>
+
+                        <!-- Right Message Preview & Dispatch Column -->
+                        <div style="display: flex; flex-direction: column; gap: 16px;">
+                            <div class="glass-panel" style="background: var(--bg-secondary); padding: 18px;">
+                                <h3 style="font-size: 14px; margin-bottom: 14px; font-family: var(--font-display); font-weight: 600;">Message Template & Preview</h3>
+                                
+                                <div class="form-group">
+                                    <textarea id="offline_message_body" class="form-control" style="min-height: 180px; font-size: 13px; line-height: 1.5;" placeholder="Message body will load here when customer is selected."></textarea>
+                                </div>
+
+                                <div style="display: flex; flex-direction: column; gap: 12px; margin-top: 14px;">
+                                    <!-- Send / Launch Button -->
+                                    <button type="button" class="btn btn-primary" onclick="sendOfflineMessage()" style="padding: 12px 24px; font-size: 13px; justify-content: center; width: 100%;">
+                                        🚀 Record Message & Open Manual Client
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Action Box showing generated links/instructions after sending -->
+                            <div class="glass-panel" id="offline_instructions_panel" style="background: var(--bg-secondary); padding: 18px; display: none; border: 1px solid var(--accent-primary);">
+                                <h3 style="font-size: 14px; margin-bottom: 10px; font-family: var(--font-display); font-weight: 600; color: var(--accent-primary);">Manual Offline Links</h3>
+                                <p style="font-size: 12px; margin-bottom: 14px; line-height: 1.4;">The message has been logged in the system. Use the helper button below to launch your application or copy the content.</p>
+                                
+                                <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                                    <a id="offline_action_link" href="#" target="_blank" class="btn btn-primary" style="text-decoration: none;">Open WhatsApp</a>
+                                    <button type="button" class="btn btn-secondary" onclick="copyOfflineMsgToClipboard()">Copy Message Text</button>
+                                    <button type="button" class="btn btn-secondary" onclick="switchTab('logs'); switchHistoryTab('manual');">View History Logs 📋</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        {% endif %}
+
+    </main>
+</div>
+
+<!-- ============================================================================
+     DRAWER: CUSTOMER DETAILS PANEL
+     ============================================================================ -->
+<div class="drawer-overlay" id="drawer-overlay" onclick="closeDrawer()"></div>
+<div class="drawer" id="drawer">
+    <div class="drawer-header">
+        <div class="drawer-title-group">
+            <span class="badge vip" id="drawer-category-badge" style="width: fit-content;">VIP</span>
+            <h2 class="drawer-name" id="drawer-full-name">Customer Name</h2>
+            <div id="drawer-contact" style="color: var(--text-secondary); font-size: 12px; margin-top: 2px;"></div>
+        </div>
+        <button class="drawer-close">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        </button>
+    </div>
+
+    <!-- Stats row in drawer -->
+    <div class="drawer-grid" style="grid-template-columns: repeat(3, 1fr);">
+        <div class="drawer-card">
+            <div class="drawer-card-title">Total Visits</div>
+            <div class="drawer-card-value" id="drawer-visits-count">0</div>
+        </div>
+        <div class="drawer-card">
+            <div class="drawer-card-title">Total Spent</div>
+            <div class="drawer-card-value" id="drawer-spent-sum">₹0.00</div>
+        </div>
+        <div class="drawer-card">
+            <div class="drawer-card-title">Loyalty Points</div>
+            <div class="drawer-card-value" id="drawer-loyalty-points" style="color: var(--accent-primary);">0</div>
+        </div>
+    </div>
+
+    <!-- Action items inside drawer -->
+    <div style="display: flex; gap: 10px;">
+        <button class="btn btn-primary" onclick="openEditCustomerModal()" style="flex-grow: 1;">
+            Edit Customer Details
+        </button>
+    </div>
+
+    <!-- Demographic Information -->
+    <div>
+        <h3 class="section-header">Demographics & Opt-in</h3>
+        <div class="drawer-grid" style="margin-top: 10px;">
+            <div class="drawer-card">
+                <div class="drawer-card-title">Birthday</div>
+                <div class="drawer-card-value" id="drawer-dob">-</div>
+            </div>
+            <div class="drawer-card">
+                <div class="drawer-card-title">Anniversary</div>
+                <div class="drawer-card-value" id="drawer-anniversary">-</div>
+            </div>
+            <div class="drawer-card" style="grid-column: span 2;">
+                <div class="drawer-card-title">Consent / Channel</div>
+                <div class="drawer-card-value" id="drawer-marketing-consent">-</div>
+            </div>
+            <div class="drawer-card" style="grid-column: span 2;">
+                <div class="drawer-card-title">Address</div>
+                <div class="drawer-card-value" id="drawer-address">-</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Dining Preferences -->
+    <div>
+        <h3 class="section-header">Dining & Taste Preferences</h3>
+        <div class="pref-tag-container" id="drawer-pref-tags"></div>
+        <div class="drawer-card" style="margin-top: 10px;">
+            <div class="drawer-card-title">Special Notes / Allergies</div>
+            <div class="drawer-card-value" id="drawer-special-notes" style="font-size: 12px; line-height: 1.4; font-style: italic;">No notes logged.</div>
+        </div>
+    </div>
+
+    <!-- Family Profile -->
+    <div>
+        <h3 class="section-header">Family Profile</h3>
+        <div style="margin-top: 10px; display: flex; flex-direction: column; gap: 6px;" id="drawer-family-list"></div>
+    </div>
+
+    <!-- Occasions Alerts -->
+    <div>
+        <h3 class="section-header">Special Occasions</h3>
+        <div style="margin-top: 10px; display: flex; flex-direction: column; gap: 6px;" id="drawer-occasions-list"></div>
+    </div>
+
+    <!-- Visit Timeline -->
+    <div>
+        <h3 class="section-header">Recent Visit History Timeline</h3>
+        <div class="timeline" id="drawer-visit-timeline" style="margin-top: 12px;"></div>
+    </div>
+</div>
+
+<!-- ============================================================================
+     MODAL: REGISTER CUSTOMER FORM
+     ============================================================================ -->
+<div class="modal-overlay" id="customer-modal" onclick="closeModalOnOverlay(event, 'customer-modal')">
+    <div class="modal">
+        <div class="modal-header">
+            <h2 class="modal-title">Register New Customer</h2>
+            <button class="drawer-close" onclick="closeModal('customer-modal')">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+            </button>
+        </div>
+        
+        <form method="POST">
+            <div class="form-group">
+                <label for="full_name">Full Name *</label>
+                <input type="text" name="full_name" id="full_name" class="form-control" placeholder="e.g. Rahul Sharma" required>
+            </div>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="phone">Phone Number *</label>
+                    <input type="tel" name="phone" id="phone" class="form-control" placeholder="e.g. +919876543210" required>
+                </div>
+                <div class="form-group">
+                    <label for="email">Email Address</label>
+                    <input type="email" name="email" id="email" class="form-control" placeholder="e.g. rahul@example.com">
+                </div>
+            </div>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="dob">Date of Birth</label>
+                    <input type="date" name="dob" id="dob" class="form-control">
+                </div>
+                <div class="form-group">
+                    <label for="anniversary">Anniversary Date</label>
+                    <input type="date" name="anniversary" id="anniversary" class="form-control">
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="gender">Gender</label>
+                <select name="gender" id="gender" class="form-control">
+                    <option value="">-- Select --</option>
+                    <option value="Male">Male</option>
+                    <option value="Female">Female</option>
+                    <option value="Other">Other</option>
+                    <option value="Prefer not to say">Prefer not to say</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label for="address">Address</label>
+                <input type="text" name="address" id="address" class="form-control" placeholder="e.g. Flat 302, Mumbai">
+            </div>
+            
+            <div class="form-group">
+                <label for="loyalty_points">Initial Loyalty Points</label>
+                <input type="number" name="loyalty_points" id="loyalty_points" class="form-control" placeholder="e.g. 100" min="0" value="0">
+            </div>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="preferred_channel">Preferred Channel</label>
+                    <select name="preferred_channel" id="preferred_channel" class="form-control">
+                        <option value="WhatsApp">WhatsApp</option>
+                        <option value="SMS">SMS</option>
+                        <option value="Email">Email</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="consent">Marketing Consent</label>
+                    <select name="consent" id="consent" class="form-control">
+                        <option value="Yes">Yes</option>
+                        <option value="No">No</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="form-group" style="margin-top: 10px;">
+                <label for="num_family_members">Number of Family Members (Max 5)</label>
+                <select id="num_family_members" class="form-control" onchange="updateFamilyMemberInputs(this.value)" style="padding: 8px;">
+                    <option value="0">None</option>
+                    <option value="1">1 Member</option>
+                    <option value="2">2 Members</option>
+                    <option value="3">3 Members</option>
+                    <option value="4">4 Members</option>
+                    <option value="5">5 Members</option>
+                </select>
+            </div>
+            
+            <div id="family_members_container" style="display: flex; flex-direction: column; gap: 12px; margin-top: 10px;"></div>
+            
+            <button type="submit" name="register_customer" class="btn btn-primary" style="width: 100%; justify-content: center; margin-top: 10px;">
+                Register Profile
+            </button>
+        </form>
+    </div>
+</div>
+
+<!-- ============================================================================
+     MODAL: EDIT CUSTOMER FORM
+     ============================================================================ -->
+<div class="modal-overlay" id="edit-customer-modal" onclick="closeModalOnOverlay(event, 'edit-customer-modal')">
+    <div class="modal">
+        <div class="modal-header">
+            <h2 class="modal-title">Edit Customer Profile</h2>
+            <button class="drawer-close" onclick="closeModal('edit-customer-modal')">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+            </button>
+        </div>
+        
+        <form method="POST">
+            <input type="hidden" name="customer_id" id="edit_customer_id">
+            
+            <div class="form-group">
+                <label for="edit_full_name">Full Name *</label>
+                <input type="text" name="full_name" id="edit_full_name" class="form-control" required>
+            </div>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="edit_phone">Phone Number *</label>
+                    <input type="tel" name="phone" id="edit_phone" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label for="edit_email">Email Address</label>
+                    <input type="email" name="email" id="edit_email" class="form-control">
+                </div>
+            </div>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="edit_dob">Date of Birth</label>
+                    <input type="date" name="dob" id="edit_dob" class="form-control">
+                </div>
+                <div class="form-group">
+                    <label for="edit_anniversary">Anniversary Date</label>
+                    <input type="date" name="anniversary" id="edit_anniversary" class="form-control">
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="edit_gender">Gender</label>
+                <select name="gender" id="edit_gender" class="form-control">
+                    <option value="">-- Select --</option>
+                    <option value="Male">Male</option>
+                    <option value="Female">Female</option>
+                    <option value="Other">Other</option>
+                    <option value="Prefer not to say">Prefer not to say</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label for="edit_address">Address</label>
+                <input type="text" name="address" id="edit_address" class="form-control">
+            </div>
+            
+            <div class="form-group">
+                <label for="edit_loyalty_points">Loyalty Points</label>
+                <input type="number" name="loyalty_points" id="edit_loyalty_points" class="form-control" min="0">
+            </div>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="edit_preferred_channel">Preferred Channel</label>
+                    <select name="preferred_channel" id="edit_preferred_channel" class="form-control">
+                        <option value="WhatsApp">WhatsApp</option>
+                        <option value="SMS">SMS</option>
+                        <option value="Email">Email</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="edit_consent">Marketing Consent</label>
+                    <select name="consent" id="edit_consent" class="form-control">
+                        <option value="Yes">Yes</option>
+                        <option value="No">No</option>
+                    </select>
+                </div>
+            </div>
+            
+            <button type="submit" name="edit_customer" class="btn btn-primary" style="width: 100%; justify-content: center; margin-top: 10px;">
+                Save Changes
+            </button>
+        </form>
+    </div>
+</div>
+
+<!-- ============================================================================
+     MODAL: RECORD VISIT FORM
+     ============================================================================ -->
+<div class="modal-overlay" id="visit-modal" onclick="closeModalOnOverlay(event, 'visit-modal')">
+    <div class="modal">
+        <div class="modal-header">
+            <h2 class="modal-title">Record Dining Visit</h2>
+            <button class="drawer-close" onclick="closeModal('visit-modal')">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+            </button>
+        </div>
+        
+        <form method="POST">
+            <input type="hidden" name="add_visit" value="1">
+            <div class="form-group">
+                <label for="customer_id">Select Customer *</label>
+                <select name="customer_id" id="customer_id" class="form-control" required style="padding: 8px;">
+                    <option value="">-- Choose Customer --</option>
+                    {% for c in customers %}
+                        <option value="{{ c.customer_id }}">{{ c.full_name }} ({{ c.phone_number }})</option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="visit_date">Visit Date *</label>
+                    <input type="date" name="visit_date" id="visit_date" class="form-control" value="{{ current_date }}" required>
+                </div>
+                <div class="form-group">
+                    <label for="visit_time">Visit Time *</label>
+                    <input type="time" name="visit_time" id="visit_time" class="form-control" required>
+                </div>
+            </div>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="guests">Number of Guests *</label>
+                    <input type="number" name="guests" id="guests" class="form-control" min="1" value="2" required>
+                </div>
+                <div class="form-group">
+                    <label for="bill">Total Bill Amount (₹) *</label>
+                    <input type="number" name="bill" id="bill" class="form-control" min="0" step="0.01" placeholder="e.g. 1500.00" required>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="rating">Feedback Rating (1 to 5 Stars)</label>
+                <select name="rating" id="rating" class="form-control" style="padding: 8px;">
+                    <option value="">-- Select (Optional) --</option>
+                    <option value="5">⭐⭐⭐⭐⭐ (5 - Excellent)</option>
+                    <option value="4">⭐⭐⭐⭐ (4 - Very Good)</option>
+                    <option value="3">⭐⭐⭐ (3 - Average)</option>
+                    <option value="2">⭐⭐ (2 - Poor)</option>
+                    <option value="1">⭐ (1 - Terrible)</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label for="comment">Feedback Comment</label>
+                <textarea name="comment" id="comment" class="form-control" placeholder="e.g. Loved the Paneer Tikka. Great seating."></textarea>
+            </div>
+            
+            <button type="submit" class="btn btn-primary" style="width: 100%; justify-content: center; margin-top: 10px;">
+                Record Visit Details
+            </button>
+        </form>
+    </div>
+</div>
+
+<!-- Link static folder served javascript -->
+<script src="/static/script.js?v=1.5"></script>
+
+<script>
+    // Autofill current time for the Record Visit modal on show
+    document.addEventListener('DOMContentLoaded', () => {
+        const timeInput = document.getElementById('visit_time');
+        if (timeInput) {
+            const now = new Date();
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            timeInput.value = `${hours}:${minutes}`;
+        }
+    });
+</script>
+
+</body>
+</html>
